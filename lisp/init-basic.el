@@ -236,10 +236,6 @@
 (use-package compat
   :demand t)
 
-;; Sqlite
-(when (fboundp 'sqlite-open)
-  (use-package emacsql-sqlite-builtin))
-
 ;; Child frame
 (when (childframe-workable-p)
   (use-package posframe

@@ -321,7 +321,6 @@ See URL `https://github.com/minad/consult/issues/770'."
    consult-bookmark consult-recent-file
    consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
    consult-theme
-   :initial (selected-region-or-symbol-at-point)
    :preview-key (list "C-SPC" :debounce 0.5 'any))
 
   (when (featurep 'org)
