@@ -258,6 +258,7 @@ This command understands vim file modifiers (like %:p:h). See
         help
         image
         indent
+        kmacro
         kotlin-mode
         lispy
         outline
@@ -514,6 +515,9 @@ and complains if a module is loaded too early (during startup)."
         (+evil-collection-init 'replace))
       (add-transient-hook! 'indent-rigidly
         (+evil-collection-init '(indent "indent")))
+      (when (>= emacs-major-version 30)
+        (add-transient-hook! 'kmacro-menu-mode
+          (+evil-collection-init 'kmacro)))
       (add-transient-hook! 'minibuffer-setup-hook
         (when evil-collection-setup-minibuffer
           (+evil-collection-init 'minibuffer)
