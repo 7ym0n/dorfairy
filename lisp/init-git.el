@@ -215,7 +215,10 @@ ensure it is built when we actually use Forge."
             (:map magit-status-mode-map
              :nv "gz" #'magit-refresh)
             (:map magit-diff-mode-map
-             :nv "gd" #'magit-jump-to-diffstat-or-diff))))
+             :nv "gd" #'magit-jump-to-diffstat-or-diff)
+            ;; Don't open recursive process buffers
+            (:map magit-process-mode-map
+             :nv "`" #'ignore))))
 
   ;; (use-package magit-todos
   ;;   :defines magit-todos-nice
