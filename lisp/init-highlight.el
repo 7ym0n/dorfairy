@@ -34,7 +34,7 @@
       :diminish
       ;; :hook (after-init . global-colorful-mode)
       :init (setq colorful-use-prefix t
-                  colorful-prefix-string "⬤")
+                  colorful-prefix-string "⯄")
       :config (dolist (mode '(html-mode php-mode help-mode helpful-mode))
                 (add-to-list 'global-colorful-modes mode)))
   (use-package rainbow-mode

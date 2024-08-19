@@ -26,18 +26,13 @@
 
 
 ;; A multi dictionaries interface
-(when emacs/27
-  (use-package fanyi
-    :init
-    (map! :leader
-      (:prefix ("d" . "dictionaries")
-       "f" #'fanyi-dwim
-       "d" #'fanyi-dwim2
-       "h" #'fanyi-from-history))
-    :custom (fanyi-providers '(fanyi-haici-provider
-                               fanyi-youdao-thesaurus-provider
-                               fanyi-etymon-provider
-                               fanyi-longman-provider))))
+(use-package fanyi
+  :init
+  (map! :leader
+    (:prefix ("d" . "dictionaries")
+     "f" #'fanyi-dwim
+     "d" #'fanyi-dwim2
+     "h" #'fanyi-from-history)))
 
 
 (when emacs/28
@@ -72,7 +67,9 @@
             `((default . ,(gt-translator
                            :taker   (list (gt-taker :pick nil :if 'selection)
                                           (gt-taker :text 'paragraph :if '(Info-mode help-mode helpful-mode devdocs-mode))
-                                          (gt-taker :text 'buffer :pick 'fresh-word :if 'read-only)
+                                          (gt-taker :text 'buffer :pick 'fresh-word
+                                                    :if (lambda (translatror)
+                                                          (and (not (derived-mode-p 'fanyi-mode)) buffer-read-only)))
                                           (gt-taker :text 'word))
                            :engines (if (display-graphic-p)
                                         (list (gt-bing-engine :if 'not-word)
@@ -81,17 +78,18 @@
                                             (gt-youdao-dict-engine :if 'word)
                                             (gt-youdao-suggest-engine :if 'word)
                                             (gt-google-engine :if 'word)))
-                           :render  (list (gt-posframe-pop-render :if (lambda (translator)
-                                                                        (and (display-graphic-p)
-                                                                             (not (derived-mode-p 'Info-mode 'help-mode 'helpful-mode 'devdocs-mode))
-                                                                             (not (member (buffer-name) '("COMMIT_EDITMSG")))))
-                                                                  :frame-params (list :accept-focus nil
-                                                                                      :width 70
-                                                                                      :height 15
-                                                                                      :left-fringe 16
-                                                                                      :right-fringe 16
-                                                                                      :border-width 1
-                                                                                      :border-color gt-pin-posframe-bdcolor))
+                           :render  (list (gt-posframe-pop-render
+                                           :if (lambda (translator)
+                                                 (and (display-graphic-p)
+                                                      (not (derived-mode-p 'Info-mode 'help-mode 'helpful-mode 'devdocs-mode))
+                                                      (not (member (buffer-name) '("COMMIT_EDITMSG")))))
+                                           :frame-params (list :accept-focus nil
+                                                               :width 70
+                                                               :height 15
+                                                               :left-fringe 16
+                                                               :right-fringe 16
+                                                               :border-width 1
+                                                               :border-color gt-pin-posframe-bdcolor))
                                           (gt-overlay-render :if 'read-only)
                                           (gt-insert-render :if (lambda (translator) (member (buffer-name) '("COMMIT_EDITMSG"))))
                                           (gt-buffer-render))))
