@@ -86,6 +86,7 @@
     :not "!"
     :and "&&" :or "||"
     :for "for"
+    :def "func"
     :return "return"
     :lambda "func()")
   ;; Env vars
