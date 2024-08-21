@@ -63,9 +63,8 @@
    :desc "LSP Organize imports"                "o" #'lsp-organize-imports
    :desc "LSP Rename"                          "r" #'lsp-rename
    :desc "Symbols"                             "S" #'lsp-treemacs-symbols
-   (:when (featurep 'vertico)
-    :desc "Jump to symbol in current workspace" "j" #'consult-lsp-symbols
-    :desc "Jump to symbol in any workspace"     "J" (cmd!! #'consult-lsp-symbols 'all-workspaces))
+   :desc "Jump to symbol in current workspace" "j" #'consult-lsp-symbols
+   :desc "Jump to symbol in any workspace"     "J" (cmd!! #'consult-lsp-symbols 'all-workspaces)
    :desc "Lsp ui imenu"                        "u" #'lsp-ui-imenu
    :desc "Errors list"                         "X" #'lsp-treemacs-errors-list
    :desc "Incoming call hierarchy"             "y" #'lsp-treemacs-call-hierarchy
@@ -214,16 +213,15 @@
 
   ;;; <leader> p --- project
   (:prefix ("p" . "project")
+   :desc "Show project buffers"             "b" #'consult-project-buffer
    :desc "Compile in project"               "c" #'project-compile
    :desc "Search project"                   "s" #'+default/search-project
    :desc "Search other project"             "o" #'+default/search-other-project
    :desc "Search symbol point from project" "S" #'+default/search-project-for-symbol-at-point
    :desc "Restart current workspace"        "R" #'lsp-workspace-restart
    :desc "Find file in project"             "F" #'project-find-file
-   :desc "List project todos"               "t" #'magit-todos-list
-   (:when (featurep 'vertico)
-    :desc "Find file in project"        "f" #'+vertico/consult-fd-or-find)
-   :desc "Find sibling file"            "o" #'find-sibling-file)
+   :desc "Find file in project"             "f" #'+vertico/consult-fd-or-find
+   :desc "Find sibling file"                "o" #'find-sibling-file)
 
   ;;; <leader> q --- quit/restart
   (:prefix-map ("q" . "quit/restart")
@@ -261,11 +259,11 @@
   ;;; <leader> s --- search
   (:prefix-map ("s" . "search")
    :desc "Internet Search Engine"           "/" #'webjump
-   :desc "Search buffer"                    "SPC" #'+default/search-buffer
    :desc "Search current folder"            "d" #'+default/search-cwd
    :desc "Search in another directory"      "D" #'+default/search-other-cwd
-   :desc "Search project"                   "s" #'+default/search-project
+   :desc "Search buffer"                    "s" #'+default/search-buffer
    :desc "Search symbol point from project" "S" #'+default/search-project-for-symbol-at-point
+   :desc "Search project"                   "p" #'+default/search-project
    :desc "Jump to visible link"             "l" #'link-hint-open-link
    :desc "Jump to link"                     "L" #'ffap-menu
    :desc "Jump to bookmark"                 "m" #'bookmark-jump
