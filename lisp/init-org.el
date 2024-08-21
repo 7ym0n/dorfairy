@@ -231,8 +231,8 @@ exist, and `org-link' otherwise."
     (after! org
       ;; A shorter link to attachments
       (+org-define-basic-link "download" (lambda () (or org-download-image-dir org-attach-id-dir "."))
-                              :image-data-fun #'+org-image-file-data-fn
-                              :requires 'org-download))
+        :image-data-fun #'+org-image-file-data-fn
+        :requires 'org-download))
     :config
     (unless org-download-image-dir
       (setq org-download-image-dir org-attach-id-dir))
@@ -450,7 +450,7 @@ If prefix ARG, copy instead of move."
                                     buffer)))
              (heading
               (org-with-point-at marker
-                                 (org-get-heading 'no-tags 'no-todo)))
+                (org-get-heading 'no-tags 'no-todo)))
              ;; Won't work with target buffers whose filename is nil
              (rfloc (list heading filename nil marker))
              (org-after-refile-insert-hook (cons #'org-reveal org-after-refile-insert-hook)))
@@ -722,16 +722,19 @@ prepended to the element after the #+HEADER: tag."
   (use-package org-journal
     :ensure t
     :defer t
+    :hook (org-journal-mode . org-mode)
     :init
     ;; Change default prefix key; needs to be set before loading org-journal
     (setq org-journal-prefix-key "C-c j")
     :config
     (setq org-journal-dir (concat dotfairy-local-dir "journal/")
           org-journal-date-format "%A, %d %B %Y"
+          org-agenda-file-regexp "\\`\\\([^.].*\\.org\\\|[0-9]\\\{8\\\}\\\(\\.gpg\\\)?\\\)\\'"
           org-journal-file-format "%Y-%m-%d"
           org-journal-date-prefix "#+TITLE: "
           org-journal-time-prefix "* "
-          org-journal-time-format "%Y-%m-%D"))
+          org-journal-time-format "%Y-%m-%D")
+    (add-to-list 'org-agenda-files org-journal-dir))
 
   (use-package ox-hugo
     :ensure t            ;Auto-install the package from Melpa (optional)
@@ -757,8 +760,12 @@ when exporting org-mode to '(html hugo md odt)."
                "\\1\\2"
                contents)))
         (list paragraph fixed-contents info))))
-
   (map! :map org-mode-map
+        :ie [tab]    #'org-cycle
+        [C-return]   #'+org/insert-item-below
+        ;; Org-aware C-a/C-e
+        [remap doom/backward-to-bol-or-indent]          #'org-beginning-of-line
+        [remap doom/forward-to-last-non-comment-or-eol] #'org-end-of-line
         :localleader
         "#" #'org-update-statistics-cookies
         "'" #'org-edit-special
@@ -771,7 +778,6 @@ when exporting org-mode to '(html hugo md odt)."
          "/" #'consult-org-agenda)
         "@" #'org-mark-subtree
         "A" #'org-archive-subtree
-        "b" #'org-switchb
         (:prefix ("a" . "attachments")
          "a" #'org-attach
          "d" #'org-attach-delete-one
@@ -822,6 +828,7 @@ when exporting org-mode to '(html hugo md odt)."
         (:prefix ("j" . "journal")
          "j" #'org-journal-new-entry
          "J" #'org-journal-new-scheduled-entry
+         "o" #'org-journal-open-current-journal-file
          "s" #'org-journal-search-forever)
         (:prefix ("l" . "links")
          "c" #'org-cliplink
