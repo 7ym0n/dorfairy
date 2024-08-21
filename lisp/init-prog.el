@@ -32,8 +32,7 @@
 (use-package prog-mode
   :ensure nil
   :hook (prog-mode . prettify-symbols-mode)
-  :init
-  (setq prettify-symbols-unprettify-at-point 'right-edge))
+  :init)
 
 (use-package protobuf-mode
   :hook (protobuf-mode . (lambda ()
