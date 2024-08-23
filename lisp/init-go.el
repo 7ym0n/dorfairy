@@ -46,7 +46,6 @@
                         "github.com/cweill/gotests/gotests"
                         "github.com/fatih/gomodifytags"
                         "github.com/110y/go-expr-completion"
-                        "golang.org/x/tools/cmd/guru"
                         "golang.org/x/tools/cmd/gorename"
                         "golang.org/x/tools/cmd/godoc"
                         "github.com/josharian/impl"
@@ -107,7 +106,6 @@
   (use-package go-gen-test)
   (use-package gotest)
   (use-package go-expr-completion)
-  (use-package go-guru)
   (use-package go-rename)
 
   (use-package go-tag
@@ -189,22 +187,11 @@
           :desc "remove tag"                        "d" #'go-tag-remove
           :desc "doc at point"                      "p" #'godoc
           (:prefix ("h" . "help")
-           "." #'godoc-at-point     ; Lookup in godoc
-           "d" #'go-guru-describe   ; Describe this
-
-           "i" #'go-guru-implements ; Implements relations for package types
-           "p" #'go-guru-peers      ; List peers for channel
-           "P" #'go-guru-pointsto   ; What does this point to
-           "r" #'go-guru-referrers  ; List references to object
-           "e" #'go-guru-whicherrs  ; Which errors
-           "w" #'go-guru-what       ; What query
-           "c" #'go-guru-callers    ; Show callers of this function
-           "C" #'go-guru-callees)   ; Show callees of this function
+           "." #'godoc-at-point)     ; Lookup in godoc
           (:prefix ("i" . "imports")
            :desc "import add"                       "a" #'go-import-add
            :desc "expr completion"                  "e" #'go-expr-completion
-           :desc "goto imports"                     "i" #'go-goto-imports      ; Go to imports
-           :desc "remove unused imports"            "r" #'go-remove-unused-imports)
+           :desc "goto imports"                     "i" #'go-goto-imports)      ; Go to imports
           (:prefix ("b" . "build")
            :desc "go run ."                         "r" (cmd! (compile "go run ."))
            :desc "go build"                         "b" (cmd! (compile "go build"))
