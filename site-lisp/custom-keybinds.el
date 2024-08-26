@@ -72,8 +72,6 @@
    :desc "References tree"                     "R" (cmd!! #'lsp-treemacs-references t)
    :desc "Symbols"                             "S" #'lsp-treemacs-symbols
    :desc "LSP"                                 "l" #'+default/lsp-command-map
-   :desc "Remember init"                       "." #'remember-init
-   :desc "Remember jump"                       "," #'remember-jump
    :desc "Open newline below"                  "o" #'open-newline-below
    :desc "Open newline above"                  "O" #'open-newline-above
    :desc "Duplicate line or region below"      "D" #'duplicate-line-or-region-below
@@ -159,6 +157,11 @@
    :desc "Snippet"                       "s" #'yas-insert-snippet
    :desc "Unicode"                       "u" #'insert-char
    :desc "Unicode"                       "u" #'unicode-property-table-internal)
+
+  (:prefix-map ("j" . "jump")
+   :desc "Remember init"               "." #'remember-init
+   :desc "Remember jump"               "," #'remember-jump
+   )
 
   (:prefix-map ("k" . "kill")
    :desc "Kill all buffers"                    "a" #'dotfairy/kill-all-buffers
