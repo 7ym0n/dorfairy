@@ -121,30 +121,22 @@
   :ensure t
   :config
 
+  (setq orderless-affix-dispatch-alist
+        '((?! . orderless-without-literal)
+          (?& . orderless-annotation)
+          (?% . char-fold-to-regexp)
+          (?` . orderless-initialism)
+          (?= . orderless-literal)
+          (?^ . orderless-literal-prefix)
+          (?~ . orderless-flex)))
+
   (defun +vertico-orderless-dispatch (pattern _index _total)
     (cond
      ;; Ensure $ works with Consult commands, which add disambiguation suffixes
      ((string-suffix-p "$" pattern)
-      `(orderless-regexp . ,(concat (substring pattern 0 -1) "[\x200000-\x300000]*$")))
-     ;; Ignore single !
-     ((string= "!" pattern) `(orderless-literal . ""))
-     ;; Without literal
-     ((string-prefix-p "!" pattern) `(orderless-without-literal . ,(substring pattern 1)))
-     ;; Annotation
-     ((string-prefix-p "&" pattern) `(orderless-annotation . ,(substring pattern 1)))
-     ((string-suffix-p "&" pattern) `(orderless-annotation . ,(substring pattern 0 -1)))
-     ;; Character folding
-     ((string-prefix-p "%" pattern) `(char-fold-to-regexp . ,(substring pattern 1)))
-     ((string-suffix-p "%" pattern) `(char-fold-to-regexp . ,(substring pattern 0 -1)))
-     ;; Initialism matching
-     ((string-prefix-p "`" pattern) `(orderless-initialism . ,(substring pattern 1)))
-     ((string-suffix-p "`" pattern) `(orderless-initialism . ,(substring pattern 0 -1)))
-     ;; Literal matching
-     ((string-prefix-p "=" pattern) `(orderless-literal . ,(substring pattern 1)))
-     ((string-suffix-p "=" pattern) `(orderless-literal . ,(substring pattern 0 -1)))
-     ;; Flex matching
-     ((string-prefix-p "~" pattern) `(orderless-flex . ,(substring pattern 1)))
-     ((string-suffix-p "~" pattern) `(orderless-flex . ,(substring pattern 0 -1)))))
+      `(orderless-regexp . ,(concat (substring pattern 0 -1) "[\x200000-\x300000]*$")))))
+
+  (add-to-list 'orderless-style-dispatchers '+vertico-orderless-dispatch)
 
   (defun +vertico-basic-remote-try-completion (string table pred point)
     (and (vertico--remote-p string)
@@ -163,7 +155,6 @@
         ;; note that despite override in the name orderless can still be used in
         ;; find-file etc.
         completion-category-overrides '((file (styles orderless partial-completion)))
-        orderless-style-dispatchers '(+vertico-orderless-dispatch)
         orderless-component-separator #'orderless-escapable-split-on-space)
   ;; ...otherwise find-file gets different highlighting than other commands
   (set-face-attribute 'completions-first-difference nil :inherit nil))

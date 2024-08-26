@@ -107,7 +107,23 @@
              (executable-find "make"))
     (use-package vterm
       :init
-      :init (setq vterm-always-compile-module t))
+      :init (setq vterm-always-compile-module t)
+      :preface
+      ;; HACK Because vterm clusmily forces vterm-module.so's compilation on us when
+      ;;      the package is loaded, this is necessary to prevent it when
+      ;;      byte-compiling this file (`use-package' blocks eagerly loads packages
+      ;;      when compiled).
+      (when noninteractive
+        (advice-add #'vterm-module-compile :override #'ignore)
+        (provide 'vterm-module))
+      :config
+      (map! :map vterm-mode-map "C-q" #'vterm-send-next-key)
+      ;; Once vterm is dead, the vterm buffer is useless. Why keep it around? We can
+      ;; spawn another if want one.
+      (setq vterm-kill-buffer-on-exit t)
+
+      ;; 5000 lines of scrollback, instead of 1000
+      (setq vterm-max-scrollback 5000))
 
     (use-package multi-vterm
       :bind ("C-<f9>" . multi-vterm)

@@ -68,7 +68,6 @@
 
   (define-key cfw:calendar-mode-map "q" #'+calendar/quit)
 
-  (add-hook 'cfw:calendar-mode-hook #'dotfairy-mark-buffer-as-real-h)
   (add-hook 'cfw:calendar-mode-hook #'hide-mode-line-mode)
 
   :init

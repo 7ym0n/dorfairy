@@ -739,13 +739,6 @@ it if it doesn't exist).")
 ;;
 ;;; Functions
 ;;;###autoload
-(defun dotfairy-buffer-frame-predicate (buf)
-  "To be used as the default frame buffer-predicate parameter. Returns nil if
-BUF should be skipped over by functions like `next-buffer' and `other-buffer'."
-  (or (dotfairy-real-buffer-p buf)
-      (eq buf (dotfairy-fallback-buffer))))
-
-;;;###autoload
 (defun dotfairy-fallback-buffer ()
   "Returns the fallback buffer, creating it if necessary. By default this is the
 scratch buffer. See `dotfairy-fallback-buffer-name' to change this."
@@ -771,24 +764,9 @@ scratch buffer. See `dotfairy-fallback-buffer-name' to change this."
   (equal (substring (buffer-name buf) 0 1) " "))
 
 ;;;###autoload
-(defun dotfairy-visible-buffer-p (buf)
-  "Return non-nil if BUF is visible."
-  (get-buffer-window buf))
-
-;;;###autoload
-(defun dotfairy-buried-buffer-p (buf)
-  "Return non-nil if BUF is not visible."
-  (not (dotfairy-visible-buffer-p buf)))
-
-;;;###autoload
 (defun dotfairy-non-file-visiting-buffer-p (buf)
   "Returns non-nil if BUF does not have a value for `buffer-file-name'."
   (not (buffer-file-name buf)))
-
-;;;###autoload
-(defun dotfairy-real-buffer-list (&optional buffer-list)
-  "Return a list of buffers that satify `dotfairy-real-buffer-p'."
-  (cl-remove-if-not #'dotfairy-real-buffer-p (or buffer-list (dotfairy-buffer-list))))
 
 ;;;###autoload
 (defun dotfairy-real-buffer-p (buffer-or-name)
@@ -835,7 +813,6 @@ If DERIVED-P, test with `derived-mode-p', otherwise use `eq'."
                           (memq (buffer-local-value 'major-mode buf) modes)))
                       (or buffer-list (dotfairy-buffer-list)))))
 
-
 ;;;###autoload
 (defun dotfairy-buried-buffers (&optional buffer-list)
   "Get a list of buffers that are buried."
@@ -847,13 +824,6 @@ If DERIVED-P, test with `derived-mode-p', otherwise use `eq'."
   (cl-loop for buf in (or buffer-list (dotfairy-buffer-list))
            when (string-match-p pattern (buffer-name buf))
            collect buf))
-
-;;;###autoload
-(defun dotfairy-set-buffer-real (buffer flag)
-  "Forcibly mark BUFFER as FLAG (non-nil = real).
-See `dotfairy-real-buffer-p' for an explanation for real buffers."
-  (with-current-buffer buffer
-    (setq dotfairy-real-buffer-p flag)))
 
 ;;;###autoload
 (defun dotfairy-kill-buffer-and-windows (buffer)
@@ -880,18 +850,6 @@ to a real buffer or the fallback buffer."
   (let ((windows (get-buffer-window-list buffer)))
     (kill-buffer buffer)
     (dotfairy-fixup-windows (cl-remove-if-not #'window-live-p windows))))
-
-;;;###autoload
-(defun dotfairy-kill-buffers-fixup-windows (buffers)
-  "Kill the BUFFERS and ensure all the windows they were displayed in have
-switched to a real buffer or the fallback buffer."
-  (let ((seen-windows (make-hash-table :test 'eq :size 8)))
-    (dolist (buffer buffers)
-      (let ((windows (get-buffer-window-list buffer)))
-        (kill-buffer buffer)
-        (dolist (window (cl-remove-if-not #'window-live-p windows))
-          (puthash window t seen-windows))))
-    (dotfairy-fixup-windows (hash-table-keys seen-windows))))
 
 ;;;###autoload
 (defun dotfairy-kill-matching-buffers (pattern &optional buffer-list)
