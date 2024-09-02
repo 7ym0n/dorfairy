@@ -489,6 +489,23 @@ info in the `header-line-format' is a more visible indicator."
       "Save and bury buffer" :exit t))))
   :config (map! :map smerge-mode-map
                 :localleader
+                "n" #'smerge-next
+                "p" #'smerge-prev
+                "r" #'smerge-resolve
+                "a" #'smerge-keep-all
+                "b" #'smerge-keep-base
+                "o" #'smerge-keep-lower
+                "l" #'smerge-keep-lower
+                "m" #'smerge-keep-upper
+                "u" #'smerge-keep-upper
+                "E" #'smerge-ediff
+                "C" #'smerge-combine-with-next
+                "R" #'smerge-refine
+                "C-m" #'smerge-keep-current
+                (:prefix "="
+                 "<" #'smerge-diff-base-upper
+                 ">" #'smerge-diff-base-lower
+                 "=" #'smerge-diff-upper-lower)
                 :m "v" #'smerge-mode-hydra/body)
 
   :hook ((find-file . (lambda ()
