@@ -509,10 +509,11 @@ info in the `header-line-format' is a more visible indicator."
                 :m "v" #'smerge-mode-hydra/body)
 
   :hook ((find-file . (lambda ()
-                        (save-excursion
-                          (goto-char (point-min))
-                          (when (re-search-forward "^<<<<<<< " nil t)
-                            (smerge-mode 1)))))
+                        (unless (bound-and-true-p smerge-mode)
+                          (save-excursion
+                            (goto-char (point-min))
+                            (when (re-search-forward "^<<<<<<< " nil t)
+                              (smerge-mode 1))))))
          (magit-diff-visit-file . (lambda ()
                                     (when smerge-mode
                                       (smerge-mode-hydra/body))))))
