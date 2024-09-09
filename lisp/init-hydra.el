@@ -75,7 +75,7 @@
         ("w" (setq-default show-trailing-whitespace (not show-trailing-whitespace))
          "whitespace" :toggle show-trailing-whitespace)
         ("d" rainbow-delimiters-mode "delimiter" :toggle t)
-        ("i" highlight-indent-guides-mode "indent" :toggle t)
+        ("i" indent-bars-mode "indent" :toggle t)
         ("T" global-hl-todo-mode "todo" :toggle t))
        "Coding"
        (("f" flymake-mode "flymake" :toggle t)

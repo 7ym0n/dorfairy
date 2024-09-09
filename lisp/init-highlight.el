@@ -246,35 +246,66 @@
                    goto-last-change))
       (advice-add cmd :after #'my-recenter-and-pulse))))
 
-;; Highlight indentions
-(use-package highlight-indent-guides
+;;; ui/indent-guides/config.el -*- lexical-binding: t; -*-
 
-  :hook ((prog-mode yaml-mode) . (lambda ()
-                                   "Highlight indentations in small files for better performance."
-                                   (unless (too-long-file-p)
-                                     (highlight-indent-guides-mode 1))))
-  :init (setq highlight-indent-guides-method 'character
-              highlight-indent-guides-responsive 'top
-              highlight-indent-guides-suppress-auto-error t)
+(defcustom +indent-guides-inhibit-functions ()
+  "A list of predicate functions.
+
+Each function will be run in the context of a buffer where `indent-bars' should
+be enabled. If any function returns non-nil, the mode will not be activated."
+  :type 'hook
+  :group '+indent-guides)
+
+
+;;
+;;; Packages
+
+(use-package indent-bars
+  :hook ((prog-mode text-mode conf-mode) . +indent-guides-init-maybe-h)
+  :init
+  (defun +indent-guides-init-maybe-h ()
+    "Enable `indent-bars-mode' depending on `+indent-guides-inhibit-functions'."
+    (unless (run-hook-with-args-until-success '+indent-guides-inhibit-functions)
+      (indent-bars-mode +1)))
+  :custom
+  (indent-bars-treesit-support t)
+  (indent-bars-treesit-ignore-blank-lines-types '("module"))
   :config
-  (with-no-warnings
-    ;; Don't display first level of indentation
-    (defun my-indent-guides-for-all-but-first-column (level responsive display)
-      (unless (> 0 level)
-        (highlight-indent-guides--highlighter-default level responsive display)))
-    (setq highlight-indent-guides-highlighter-function
-          #'my-indent-guides-for-all-but-first-column)
+  (setq indent-bars-prefer-character
+        (or
+         ;; Bitmaps are far slower on MacOS, inexplicably, but this needs more
+         ;; testing to see if it's specific to ns or emacs-mac builds, or is
+         ;; just a general MacOS issue.
+         (featurep :system 'macos)
+         ;; FIX: A bitmap init bug in PGTK builds of Emacs before v30 that could
+         ;; cause crashes (see jdtsmith/indent-bars#3).
+         (and (featurep 'pgtk)
+              (< emacs-major-version 30)))
 
-    ;; Disable in `macrostep' expanding
-    (with-eval-after-load 'macrostep
-      (advice-add #'macrostep-expand
-                  :after (lambda (&rest _)
-                           (when highlight-indent-guides-mode
-                             (highlight-indent-guides-mode -1))))
-      (advice-add #'macrostep-collapse
-                  :after (lambda (&rest _)
-                           (when (derived-mode-p 'prog-mode 'yaml-mode)
-                             (highlight-indent-guides-mode 1)))))))
+        ;; Show indent guides starting from the first column.
+        indent-bars-starting-column 0
+        ;; Make indent guides subtle; the default is too distractingly colorful.
+        indent-bars-width-frac 0.15  ; make bitmaps thinner
+        indent-bars-color-by-depth nil
+        indent-bars-color '(font-lock-comment-face :face-bg nil :blend 0.425)
+        ;; Don't highlight current level indentation; it's distracting and is
+        ;; unnecessary overhead for little benefit.
+        indent-bars-highlight-current-depth nil)
+
+  (add-hook! '+indent-guides-inhibit-functions
+             ;; Org's virtual indentation messes up indent-guides.
+             (defun +indent-guides-in-org-indent-mode-p ()
+               (bound-and-true-p org-indent-mode))
+             ;; Fix #6438: indent-guides prevent inline images from displaying in ein
+             ;; notebooks.
+             (defun +indent-guides-in-ein-notebook-p ()
+               (and (bound-and-true-p ein:notebook-mode)
+                    (bound-and-true-p ein:output-area-inlined-images)))
+             ;; Don't display indent guides in childframe popups (not helpful in
+             ;; completion or eldoc popups).
+             ;; REVIEW: Swap with `frame-parent' when 27 support is dropped
+             (defun +indent-guides-in-childframe-p ()
+               (frame-parameter nil 'parent-frame))))
 
 ;; Highlight the current line
 (use-package hl-line
