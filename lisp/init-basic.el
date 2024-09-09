@@ -74,9 +74,6 @@
 ;; Increase how much is read from processes in a single chunk (default is 4kb)
 (setq read-process-output-max #x10000)  ; 64kb
 
-;; Don't ping things that look like domain names.
-(setq ffap-machine-p-known 'reject)
-
 ;; Garbage Collector Magic Hack
 (use-package gcmh
   :diminish

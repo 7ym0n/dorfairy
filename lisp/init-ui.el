@@ -31,8 +31,7 @@
 (setq-default cursor-in-non-selected-windows nil
               tab-width 4
               indent-tabs-mode nil)
-(setq idle-update-delay 1.0
-      highlight-nonselected-windows nil
+(setq highlight-nonselected-windows nil
       fast-but-imprecise-scrolling t
       redisplay-skip-fontification-on-input t)
 
