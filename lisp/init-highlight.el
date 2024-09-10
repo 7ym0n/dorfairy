@@ -306,6 +306,23 @@ be enabled. If any function returns non-nil, the mode will not be activated."
              ;; REVIEW: Swap with `frame-parent' when 27 support is dropped
              (defun +indent-guides-in-childframe-p ()
                (frame-parameter nil 'parent-frame)))
+  ;; HACK: Both indent-bars and tree-sitter-hl-mode use the jit-font-lock
+  ;;   mechanism, and so they don't play well together. For those particular
+  ;;   cases, we'll use `highlight-indent-guides', at least until the
+  ;;   tree-sitter module adopts treesit.
+  (defvar-local +indent-guides-p nil)
+  (add-hook! 'tree-sitter-mode-hook :append
+    (defun +indent-guides--toggle-on-tree-sitter-h ()
+      (if tree-sitter-mode
+          (when (bound-and-true-p indent-bars-mode)
+            (with-memoization (get 'indent-bars-mode 'disabled-in-tree-sitter)
+              (dotfairy-log "Disabled `indent-bars-mode' because it's not supported in `tree-sitter-mode'")
+              t)
+            (indent-bars-mode -1)
+            (setq +indent-guides-p t))
+        (when +indent-guides-p
+          (indent-bars-mode +1)))))
+
   ;; HACK: `indent-bars-mode' interactions with some packages poorly. This
   ;;   section is dedicated to package interop fixes.
   (after! magit-blame
