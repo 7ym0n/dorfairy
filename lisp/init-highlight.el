@@ -277,8 +277,8 @@ be enabled. If any function returns non-nil, the mode will not be activated."
          ;; testing to see if it's specific to ns or emacs-mac builds, or is
          ;; just a general MacOS issue.
          (featurep :system 'macos)
-         ;; FIX: A bitmap init bug in PGTK builds of Emacs before v30 that could
-         ;; cause crashes (see jdtsmith/indent-bars#3).
+         ;; FIX: A bitmap init bug in emacs-pgtk (before v30) that could cause
+         ;; crashes (see jdtsmith/indent-bars#3).
          (and (featurep 'pgtk)
               (< emacs-major-version 30)))
 
@@ -301,38 +301,34 @@ be enabled. If any function returns non-nil, the mode will not be activated."
              (defun +indent-guides-in-ein-notebook-p ()
                (and (bound-and-true-p ein:notebook-mode)
                     (bound-and-true-p ein:output-area-inlined-images)))
-             ;; Don't display indent guides in childframe popups (not helpful in
-             ;; completion or eldoc popups).
+             ;; Don't display indent guides in childframe popups (which are almost always
+             ;; used for completion or eldoc popups).
              ;; REVIEW: Swap with `frame-parent' when 27 support is dropped
              (defun +indent-guides-in-childframe-p ()
                (frame-parameter nil 'parent-frame)))
-  ;; HACK: Both indent-bars and tree-sitter-hl-mode use the jit-font-lock
-  ;;   mechanism, and so they don't play well together. For those particular
-  ;;   cases, we'll use `highlight-indent-guides', at least until the
-  ;;   tree-sitter module adopts treesit.
-  (defvar-local +indent-guides-p nil)
-  (add-hook! 'tree-sitter-mode-hook :append
-    (defun +indent-guides--toggle-on-tree-sitter-h ()
-      (if tree-sitter-mode
-          (when (bound-and-true-p indent-bars-mode)
-            (with-memoization (get 'indent-bars-mode 'disabled-in-tree-sitter)
-              (dotfairy-log "Disabled `indent-bars-mode' because it's not supported in `tree-sitter-mode'")
-              t)
-            (indent-bars-mode -1)
-            (setq +indent-guides-p t))
-        (when +indent-guides-p
-          (indent-bars-mode +1)))))
+  ;; HACK: The way `indent-bars-display-on-blank-lines' functions, it places
+  ;;   text properties with a display property containing a newline, which
+  ;;   confuses `move-to-column'. This breaks `next-line' and `evil-next-line'
+  ;;   without this advice (See jdtsmith/indent-bars#22). Advising
+  ;;   `line-move-to-column' isn't enough for `move-to-column' calls in various
+  ;;   Evil operators (`evil-delete', `evil-change', etc).
+  (defadvice! +indent-guides--prevent-passing-newline-a (fn col &rest args)
+    :around #'move-to-column
+    (if-let* ((indent-bars-mode)
+              (indent-bars-display-on-blank-lines)
+              (nlp (line-end-position))
+              (dprop (get-text-property nlp 'display))
+              ((seq-contains-p dprop ?\n))
+              ((> col (- nlp (point)))))
+        (goto-char nlp)
+      (apply fn col args)))
 
-  ;; HACK: `indent-bars-mode' interactions with some packages poorly. This
-  ;;   section is dedicated to package interop fixes.
+  ;; HACK: `indent-bars-mode' interactions with some packages poorly, often
+  ;;   flooding whole sections of the buffer with indent guides. This section is
+  ;;   dedicated to fixing interop with those packages.
   (after! magit-blame
     (add-to-list 'magit-blame-disable-modes 'indent-bars-mode))
 
-  ;; HACK: lsp-ui-peek uses overlays, and indent-bars doesn't know how to deal
-  ;;   with all the whitespace it uses to format its popups, spamming it with
-  ;;   indent guides. Making the two work together is a project for another
-  ;;   day, so disable `indent-bars-mode' while its active instead. Doesn't
-  ;;   affect character bars though.
   ;; REVIEW: Report this upstream to `indent-bars'?
   (defadvice! +indent-guides--remove-after-lsp-ui-peek-a (&rest _)
     :after #'lsp-ui-peek--peek-new
@@ -348,7 +344,24 @@ be enabled. If any function returns non-nil, the mode will not be activated."
   (defadvice! +indent-guides--restore-after-lsp-ui-peek-a (&rest _)
     :after #'lsp-ui-peek--peek-hide
     (unless indent-bars-prefer-character
-      (indent-bars-setup))))
+      (indent-bars-setup)))
+
+  ;; HACK: Both indent-bars and tree-sitter-hl-mode use the jit-font-lock
+  ;;   mechanism, and so they don't play well together. For those particular
+  ;;   cases, we'll use `highlight-indent-guides', at least until the
+  ;;   tree-sitter module adopts treesit.
+  (defvar-local +indent-guides-p nil)
+  (add-hook! 'tree-sitter-mode-hook :append
+    (defun +indent-guides--toggle-on-tree-sitter-h ()
+      (if tree-sitter-mode
+          (when (bound-and-true-p indent-bars-mode)
+            (with-memoization (get 'indent-bars-mode 'disabled-in-tree-sitter)
+              (dotfairy-log "Disabled `indent-bars-mode' because it's not supported in `tree-sitter-mode'")
+              t)
+            (indent-bars-mode -1)
+            (setq +indent-guides-p t))
+        (when +indent-guides-p
+          (indent-bars-mode +1))))))
 
 ;; Highlight the current line
 (use-package hl-line
