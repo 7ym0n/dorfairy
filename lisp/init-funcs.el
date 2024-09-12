@@ -273,34 +273,100 @@ editorconfig or dtrt-indent installed."
   (message "Changed indentation to %d" width))
 
 (defmacro letf! (bindings &rest body)
-  "Temporarily rebind function and macros in BODY.
-Intended as a simpler version of `cl-letf' and `cl-macrolet'.
-BINDINGS is either a) a list of, or a single, `defun' or `defmacro'-ish form, or
-b) a list of (PLACE VALUE) bindings as `cl-letf*' would accept.
-TYPE is either `defun' or `defmacro'. NAME is the name of the function. If an
-original definition for NAME exists, it can be accessed as a lexical variable by
-the same name, for use with `funcall' or `apply'. ARGLIST and BODY are as in
-`defun'.
-\(fn ((TYPE NAME ARGLIST &rest BODY) ...) BODY...)"
+  "Temporarily rebind function, macros, and advice in BODY.
+
+Intended as syntax sugar for `cl-letf', `cl-labels', `cl-macrolet', and
+temporary advice (`define-advice').
+
+BINDINGS is either:
+
+  A list of (PLACE VALUE) bindings as `cl-letf*' would accept.
+  A list of, or a single, `defun', `defun*', `defmacro', or `defadvice' forms.
+
+The def* forms accepted are:
+
+  (defun NAME (ARGS...) &rest BODY)
+    Defines a temporary function with `cl-letf'
+  (defun* NAME (ARGS...) &rest BODY)
+    Defines a temporary function with `cl-labels' (allows recursive
+    definitions).
+  (defmacro NAME (ARGS...) &rest BODY)
+    Uses `cl-macrolet'.
+  (defadvice FUNCTION WHERE ADVICE)
+    Uses `advice-add' (then `advice-remove' afterwards).
+  (defadvice FUNCTION (HOW LAMBDA-LIST &optional NAME DEPTH) &rest BODY)
+    Defines temporary advice with `define-advice'."
   (declare (indent defun))
   (setq body (macroexp-progn body))
-  (when (memq (car bindings) '(defun defmacro))
+  (when (memq (car bindings) '(defun defun* defmacro defadvice))
     (setq bindings (list bindings)))
-  (dolist (binding (reverse bindings) (macroexpand body))
+  (dolist (binding (reverse bindings) body)
     (let ((type (car binding))
           (rest (cdr binding)))
       (setq
        body (pcase type
               (`defmacro `(cl-macrolet ((,@rest)) ,body))
-              (`defun `(cl-letf* ((,(car rest) (symbol-function #',(car rest)))
-                                  ((symbol-function #',(car rest))
-                                   (lambda ,(cadr rest) ,@(cddr rest))))
-                         (ignore ,(car rest))
-                         ,body))
+              (`defadvice
+                  (if (keywordp (cadr rest))
+                      (cl-destructuring-bind (target where fn) rest
+                        `(when-let (fn ,fn)
+                           (advice-add ,target ,where fn)
+                           (unwind-protect ,body (advice-remove ,target fn))))
+                    (let* ((fn (pop rest))
+                           (argspec (pop rest)))
+                      (when (< (length argspec) 3)
+                        (setq argspec
+                              (list (nth 0 argspec)
+                                    (nth 1 argspec)
+                                    (or (nth 2 argspec) (gensym (format "%s-a" (symbol-name fn)))))))
+                      (let ((name (nth 2 argspec)))
+                        `(progn
+                           (define-advice ,fn ,argspec ,@rest)
+                           (unwind-protect ,body
+                             (advice-remove #',fn #',name)
+                             ,(if name `(fmakunbound ',name))))))))
+              (`defun
+                  `(cl-letf ((,(car rest) (symbol-function #',(car rest))))
+                     (ignore ,(car rest))
+                     (cl-letf (((symbol-function #',(car rest))
+                                (lambda! ,(cadr rest) ,@(cddr rest))))
+                       ,body)))
+              (`defun*
+                  `(cl-labels ((,@rest)) ,body))
               (_
                (when (eq (car-safe type) 'function)
                  (setq type (list 'symbol-function type)))
                (list 'cl-letf (list (cons type rest)) body)))))))
+
+;;; Closure factories
+(defmacro lambda! (arglist &rest body)
+  "Returns (cl-function (lambda ARGLIST BODY...))
+The closure is wrapped in `cl-function', meaning ARGLIST will accept anything
+`cl-defun' will. Implicitly adds `&allow-other-keys' if `&key' is present in
+ARGLIST."
+  (declare (indent defun) (doc-string 1) (pure t) (side-effect-free t))
+  `(cl-function
+    (lambda
+      ,(letf! (defun* allow-other-keys (args)
+                (mapcar
+                 (lambda (arg)
+                   (cond ((nlistp (cdr-safe arg)) arg)
+                         ((listp arg) (allow-other-keys arg))
+                         (arg)))
+                 (if (and (memq '&key args)
+                          (not (memq '&allow-other-keys args)))
+                     (if (memq '&aux args)
+                         (let (newargs arg)
+                           (while args
+                             (setq arg (pop args))
+                             (when (eq arg '&aux)
+                               (push '&allow-other-keys newargs))
+                             (push arg newargs))
+                           (nreverse newargs))
+                       (append args (list '&allow-other-keys)))
+                   args)))
+         (allow-other-keys arglist))
+      ,@body)))
 
 ;;;###autoload
 (defun +default/new-buffer ()
