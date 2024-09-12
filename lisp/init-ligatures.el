@@ -109,6 +109,10 @@ font.")
     (t))
   "A alist of ligatures to enable in specific modes.")
 
+(defvar +ligatures-in-modes nil
+  "List of major modes where ligatures should be enabled.")
+(make-obsolete-variable '+ligatures-in-modes "Use `ligature-ignored-major-modes' instead" "24.10.0")
+
 (defvar +ligatures-prog-mode-list nil
   "A list of ligatures to enable in all `prog-mode' buffers.")
 (make-obsolete-variable '+ligatures-prog-mode-list "Use `+ligatures-alist' instead" "3.0.0")
@@ -120,15 +124,6 @@ font.")
 (defvar +ligatures-extra-alist '((t))
   "A map of major modes to symbol lists (for `prettify-symbols-alist').")
 
-(defvar +ligatures-in-modes
-  '(not special-mode comint-mode eshell-mode term-mode vterm-mode Info-mode
-        elfeed-search-mode elfeed-show-mode)
-  "List of major modes where ligatures should be enabled.
-
-  If t, enable it everywhere (except `fundamental-mode').
-  If the first element is 'not, enable it in any mode besides what is listed.
-  If nil, don't enable ligatures anywhere.")
-
 (defvar +ligatures-extras-in-modes t
   "List of major modes where extra ligatures should be enabled.
 
@@ -137,11 +132,9 @@ Extra ligatures are mode-specific substituions, defined in
 controls where these are enabled.
 
   If t, enable it everywhere (except `fundamental-mode').
-  If the first element is 'not, enable it in any mode besides what is listed.
+  If the first element is not, enable it in any mode besides what is listed.
   If nil, don't enable these extra ligatures anywhere (though it's more
 efficient to remove the `+extra' flag from the :ui ligatures module instead).")
-
-(defvar +ligatures--init-font-hook nil)
 
 
 (defun +ligatures--enable-p (modes)
@@ -152,42 +145,31 @@ efficient to remove the `+extra' flag from the :ui ligatures module instead).")
             (not (apply #'derived-mode-p (cdr modes)))
           (apply #'derived-mode-p modes)))))
 
-(defun +ligatures-init-buffer-h ()
-  "Set up ligatures for the current buffer.
+(defun +ligatures-init-extra-symbols-h ()
+  "Set up `prettify-symbols-mode' for the current buffer.
 
 Extra ligatures are mode-specific substituions, defined in
 `+ligatures-extra-symbols', assigned with `set-ligatures!', and made possible
 with `prettify-symbols-mode'. This variable controls where these are enabled.
 See `+ligatures-extras-in-modes' to control what major modes this function can
 and cannot run in."
-  (when after-init-time
-    (let ((in-mode-p
-           (+ligatures--enable-p +ligatures-in-modes))
-          (in-mode-extras-p
-           (and (+ligatures--enable-p +ligatures-extras-in-modes))))
-      (when in-mode-p
-        ;; If ligature-mode has been installed, there's no
-        ;; need to do anything, we activate global-ligature-mode
-        ;; later and handle all settings from `set-ligatures!' later.
-        (unless (fboundp #'ligature-mode-turn-on)
-          (run-hooks '+ligatures--init-font-hook)
-          (setq +ligatures--init-font-hook nil)))
-      (when in-mode-extras-p
-        (prependq! prettify-symbols-alist
-                   (alist-get major-mode +ligatures-extra-alist)))
-      (when (and (or in-mode-p in-mode-extras-p)
-                 prettify-symbols-alist)
-        (when prettify-symbols-mode
-          (prettify-symbols-mode -1))
-        (prettify-symbols-mode +1)))))
-
+  (when (and after-init-time (+ligatures--enable-p +ligatures-extras-in-modes))
+    (prependq! prettify-symbols-alist
+               (or (alist-get major-mode +ligatures-extra-alist)
+                   (cl-loop for (mode . symbols) in +ligatures-extra-alist
+                            if (derived-mode-p mode)
+                            return symbols)))
+    (when prettify-symbols-alist
+      (when prettify-symbols-mode
+        (prettify-symbols-mode -1))
+      (prettify-symbols-mode +1))))
 
 ;;;###autodef
 (defun set-ligatures! (modes &rest plist)
   "Associates string patterns with icons in certain major-modes.
 
-  MODES is a major mode symbol or a list of them.
-  PLIST is a property list whose keys must match keys in
+MODES is a major mode symbol or a list of them.
+PLIST is a property list whose keys must match keys in
 `+ligatures-extra-symbols', and whose values are strings representing the text
 to be replaced with that symbol.
 
@@ -196,15 +178,15 @@ pretty symbols and ligatures previously defined for MODES.
 
 For example, the rule for emacs-lisp-mode is very simple:
 
-  (set-ligatures! \\='emacs-lisp-mode
-    :lambda \"lambda\")
+(set-ligatures! \\='emacs-lisp-mode
+  :lambda \"lambda\")
 
 This will replace any instances of \"lambda\" in emacs-lisp-mode with the symbol
 associated with :lambda in `+ligatures-extra-symbols'.
 
 Pretty symbols can be unset for emacs-lisp-mode with:
 
-  (set-ligatures! \\='emacs-lisp-mode nil)
+(set-ligatures! \\='emacs-lisp-mode nil)
 
 Note that this will keep all ligatures in `+ligatures-prog-mode-list' active, as
 `emacs-lisp-mode' is derived from `prog-mode'."
@@ -228,19 +210,19 @@ Note that this will keep all ligatures in `+ligatures-prog-mode-list' active, as
 (defun set-font-ligatures! (modes &rest ligatures)
   "Associates string patterns with ligatures in certain major-modes.
 
-  MODES is a major mode symbol or a list of them.
-  LIGATURES is a list of ligatures that should be handled by the font,
-    like \"==\" or \"-->\". LIGATURES is a list of strings.
+MODES is a major mode symbol or a list of them.
+LIGATURES is a list of ligatures that should be handled by the font,
+like \"==\" or \"-->\". LIGATURES is a list of strings.
 
 For example, the rule for emacs-lisp-mode is very simple:
 
-  (set-font-ligatures! \\='emacs-lisp-mode \"->\")
+(set-font-ligatures! \\='emacs-lisp-mode \"->\")
 
 This will ligate \"->\" into the arrow of choice according to your font.
 
 All font ligatures for emacs-lisp-mode can be unset with:
 
-  (set-font-ligatures! \\='emacs-lisp-mode nil)
+(set-font-ligatures! \\='emacs-lisp-mode nil)
 
 However, ligatures for any parent modes (like `prog-mode') will still be in
 effect, as `emacs-lisp-mode' is derived from `prog-mode'."
@@ -264,7 +246,7 @@ effect, as `emacs-lisp-mode' is derived from `prog-mode'."
 
 (add-hook! 'after-init-hook :append
   (defun +ligatures-init-h ()
-    (add-hook 'after-change-major-mode-hook #'+ligatures-init-buffer-h)))
+    (add-hook 'after-change-major-mode-hook #'+ligatures-init-extra-symbols-h)))
 
 (cond
  ;; The emacs-mac build of Emacs appears to have built-in support for ligatures,
