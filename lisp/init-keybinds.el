@@ -270,9 +270,9 @@ For example, :nvi will map to (list 'normal 'visual 'insert). See
                  (:desc
                   (setq desc (pop rest)))
                  (:map
-                  (dotfairy--map-set :keymaps `(quote ,(dotfairy-enlist (pop rest)))))
+                  (dotfairy--map-set :keymaps `(backquote ,(ensure-list (pop rest)))))
                  (:mode
-                  (push (cl-loop for m in (dotfairy-enlist (pop rest))
+                  (push (cl-loop for m in (ensure-list (pop rest))
                                  collect (intern (concat (symbol-name m) "-map")))
                         rest)
                   (push :map rest))

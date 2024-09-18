@@ -546,11 +546,6 @@ single file or nested compound statement of `and' and `or' statements."
     (setq exp (cadr exp)))
   exp)
 
-(defun dotfairy-enlist (exp)
-  "Return EXP wrapped in a list, or as-is if already a list."
-  (declare (pure t) (side-effect-free t))
-  (if (proper-list-p exp) exp (list exp)))
-
 (defun dotfairy-keyword-name (keyword)
   "Returns the string name of KEYWORD (`keywordp') minus the leading colon."
   (declare (pure t) (side-effect-free t))
@@ -562,7 +557,7 @@ single file or nested compound statement of `and' and `or' statements."
 If a mode is quoted, it is left as is. If the entire HOOKS list is quoted, the
 list is returned as-is."
   (declare (pure t) (side-effect-free t))
-  (let ((hook-list (dotfairy-enlist (dotfairy-unquote hooks))))
+  (let ((hook-list (ensure-list (dotfairy-unquote hooks))))
     (if (eq (car-safe hooks) 'quote)
         hook-list
       (cl-loop for hook in hook-list
@@ -597,16 +592,19 @@ advised)."
 
 (defmacro add-hook! (hooks &rest rest)
   "A convenience macro for adding N functions to M hooks.
+
 This macro accepts, in order:
+
   1. The mode(s) or hook(s) to add to. This is either an unquoted mode, an
      unquoted list of modes, a quoted hook variable or a quoted list of hook
      variables.
-  2. Optional properties :local and/or :append, which will make the hook
-     buffer-local or append to the list of hooks (respectively),
-  3. The function(s) to be added: this can be one function, a quoted list
-     thereof, a list of `defun's, or body forms (implicitly wrapped in a
-     lambda).
-\(fn HOOKS [:append :local] FUNCTIONS)"
+  2. Optional properties :local, :append, and/or :depth [N], which will make the
+     hook buffer-local or append to the list of hooks (respectively),
+  3. The function(s) to be added: this can be a quoted function, a quoted list
+     thereof, a list of `defun' or `cl-defun' forms, or arbitrary forms (will
+     implicitly be wrapped in a lambda).
+
+\(fn HOOKS [:append :local [:depth N]] FUNCTIONS-OR-FORMS...)"
   (declare (indent (lambda (indent-point state)
                      (goto-char indent-point)
                      (when (looking-at-p "\\s-*(")
@@ -615,41 +613,38 @@ This macro accepts, in order:
   (let* ((hook-forms (dotfairy--resolve-hook-forms hooks))
          (func-forms ())
          (defn-forms ())
-         append-p
-         local-p
-         remove-p
-         forms)
+         append-p local-p remove-p depth)
     (while (keywordp (car rest))
       (pcase (pop rest)
         (:append (setq append-p t))
+        (:depth  (setq depth (pop rest)))
         (:local  (setq local-p t))
         (:remove (setq remove-p t))))
-    (let ((first (car-safe (car rest))))
-      (cond ((null first)
-             (setq func-forms rest))
-
-            ((eq first 'defun)
-             (setq func-forms (mapcar #'cadr rest)
-                   defn-forms rest))
-
-            ((memq first '(quote function))
-             (setq func-forms
-                   (if (cdr rest)
-                       (mapcar #'dotfairy-unquote rest)
-                     (dotfairy-enlist (dotfairy-unquote (car rest))))))
-
-            ((setq func-forms (list `(lambda (&rest _) ,@rest)))))
-      (dolist (hook hook-forms)
-        (dolist (func func-forms)
-          (push (if remove-p
-                    `(remove-hook ',hook #',func ,local-p)
-                  `(add-hook ',hook #',func ,append-p ,local-p))
-                forms)))
-      (macroexp-progn
-       (append defn-forms
-               (if append-p
-                   (nreverse forms)
-                 forms))))))
+    (while rest
+      (let* ((next (pop rest))
+             (first (car-safe next)))
+        (push (cond ((memq first '(function nil))
+                     next)
+                    ((eq first 'quote)
+                     (let ((quoted (cadr next)))
+                       (if (atom quoted)
+                           next
+                         (when (cdr quoted)
+                           (setq rest (cons (list first (cdr quoted)) rest)))
+                         (list first (car quoted)))))
+                    ((memq first '(defun cl-defun))
+                     (push next defn-forms)
+                     (list 'function (cadr next)))
+                    ((prog1 `(lambda (&rest _) ,@(cons next rest))
+                       (setq rest nil))))
+              func-forms)))
+    `(progn
+       ,@defn-forms
+       (dolist (hook ',(nreverse hook-forms))
+         (dolist (func (list ,@func-forms))
+           ,(if remove-p
+                `(remove-hook hook func ,local-p)
+              `(add-hook hook func ,(or depth append-p) ,local-p)))))))
 
 (defmacro remove-hook! (hooks &rest rest)
   "A convenience macro for removing N functions from M hooks.
@@ -672,7 +667,7 @@ DOCSTRING and BODY are as in `defun'.
     (setq docstring nil))
   (let (where-alist)
     (while (keywordp (car body))
-      (push `(cons ,(pop body) (dotfairy-enlist ,(pop body)))
+      (push `(cons ,(pop body) (ensure-list ,(pop body)))
             where-alist))
     `(progn
        (defun ,symbol ,arglist ,docstring ,@body)
@@ -690,7 +685,7 @@ testing advice (when combined with `rotate-text').
     (unless (stringp docstring)
       (push docstring body))
     (while (keywordp (car body))
-      (push `(cons ,(pop body) (dotfairy-enlist ,(pop body)))
+      (push `(cons ,(pop body) (ensure-list ,(pop body)))
             where-alist))
     `(dolist (targets (list ,@(nreverse where-alist)))
        (dolist (target (cdr targets))
@@ -870,7 +865,7 @@ See `dotfairy-real-buffer-p' for details on what that means."
 (defun dotfairy-buffers-in-mode (modes &optional buffer-list derived-p)
   "Return a list of buffers whose `major-mode' is `eq' to MODE(S).
 If DERIVED-P, test with `derived-mode-p', otherwise use `eq'."
-  (let ((modes (dotfairy-enlist modes)))
+  (let ((modes (ensure-list modes)))
     (cl-remove-if-not (if derived-p
                           (lambda (buf)
                             (with-current-buffer buf
