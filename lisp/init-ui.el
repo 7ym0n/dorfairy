@@ -287,7 +287,9 @@
 (use-package display-line-numbers
   :ensure nil
   :commands (dotfairy/toggle-line-numbers)
-  :hook ((prog-mode yaml-mode yaml-ts-mode conf-mode) . display-line-numbers-mode)
+  :hook ((prog-mode
+          yaml-mode yaml-ts-mode
+          conf-mode toml-ts-mode) . display-line-numbers-mode)
   :init (setq display-line-numbers-width-start t)
   ;;;###autoload
   (defun dotfairy/toggle-line-numbers ()
