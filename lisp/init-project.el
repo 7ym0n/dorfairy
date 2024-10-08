@@ -324,7 +324,7 @@ If prefix ARG is set, include ignored/hidden files."
   "Search current project for symbol at point.
 If prefix ARG is set, prompt for a known project to search from."
   (interactive
-   (list (dotfairy-pcre-quote (or (dotfairy-thing-at-point-or-region) ""))
+   (list (or (dotfairy-thing-at-point-or-region) "")
          (if current-prefix-arg
              (if-let (projects (project-known-project-roots))
                  (completing-read "Search project: " projects nil t)
