@@ -272,7 +272,7 @@
   :hook ((after-init . delete-selection-mode))
   :config
   ;; TAB cycle if there are only few candidates
-  (setq completion-cycle-threshold 3)
+  ;; (setq completion-cycle-threshold 3)
 
   ;; Only list the commands of the current modes
   (when (boundp 'read-extended-command-predicate)
