@@ -526,24 +526,14 @@ info in the `header-line-format' is a more visible indicator."
 ;; Git related modes
 (use-package git-modes)
 
-(use-package git-commit
-  :hook (after-init . global-git-commit-mode)
-  :config
-  (set-yas-minor-mode! 'git-commit-mode)
-
-  ;; Enforce git commit conventions.
-  ;; See https://chris.beams.io/posts/git-commit/
-  (setq git-commit-summary-max-length 50
-        git-commit-style-convention-checks '(overlong-summary-line non-empty-second-line))
-
-  (add-hook! 'git-commit-setup-hook
-    (defun +vc-start-in-insert-state-maybe-h ()
-      "Start git-commit-mode in insert state if in a blank commit message,
-otherwise in default state."
-      (when (and (bound-and-true-p evil-local-mode)
-                 (not (evil-emacs-state-p))
-                 (bobp) (eolp))
-        (evil-insert-state)))))
+(add-hook! 'git-commit-setup-hook
+  (defun +vc-start-in-insert-state-maybe-h ()
+    "Start git-commit-mode in insert state if in a blank commit message,
+-otherwise in default state."
+    (when (and (bound-and-true-p evil-local-mode)
+               (not (evil-emacs-state-p))
+               (bobp) (eolp))
+      (evil-insert-state))))
 
 (provide 'init-git)
 ;;; init-git.el ends here
