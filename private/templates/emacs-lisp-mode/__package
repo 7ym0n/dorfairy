@@ -7,7 +7,7 @@
 ;; Created: `(format-time-string "%B %d, %Y")`
 ;; Modified: `(format-time-string "%B %d, %Y")`
 ;; Version: 0.0.1
-;; Keywords: `(mapconcat #'symbol-name (mapcar #'car finder-known-keywords) " ")`
+;; Keywords:
 ;; Homepage: https://github.com/`(cl-find-if-not #'string-empty-p (list (cdr (dotfairy-call-process "git" "config" "github.user")) user-login-name))`/`(file-name-base buffer-file-name)`
 ;; Package-Requires: ((emacs "24.3"))
 ;;
@@ -19,7 +19,7 @@
 ;;
 ;;; Code:
 
-`%`$0
+$0
 
 (provide '`(file-name-base buffer-file-name)`)
 ;;; `(file-name-nondirectory buffer-file-name)` ends here

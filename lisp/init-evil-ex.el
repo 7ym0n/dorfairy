@@ -198,6 +198,16 @@ If the glob ends in a slash, only returns matching directories."
    (lambda (text)
      (replace-regexp-in-string "\\\\[\"\\]" (lambda (str) (substring str 1)) text))))
 
+;;;###autodef
+(defun set-evil-initial-state! (modes state)
+  "Set the initialize STATE of MODES using `evil-set-initial-state'."
+  (declare (indent defun))
+  (after! evil
+    (if (listp modes)
+        (dolist (mode (ensure-list modes))
+          (evil-set-initial-state mode state))
+      (evil-set-initial-state modes state))))
+
 ;;;###autoload
 (defun +evil/shift-right ()
   "vnoremap < <gv"

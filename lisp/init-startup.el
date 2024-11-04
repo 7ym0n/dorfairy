@@ -53,6 +53,7 @@
 
 ;; UI
 (require 'init-ui)
+(require 'init-popup)
 
 ;; Editor
 (require 'init-iedit)
@@ -86,6 +87,7 @@
 (require 'init-pass)
 (require 'init-calendar)
 (require 'init-player)
+(require 'init-ansible)
 
 ;; Language
 (require 'init-elisp)
