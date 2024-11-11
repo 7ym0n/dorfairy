@@ -24,7 +24,6 @@
       (add-hook 'after-load-theme-hook #'hydra-set-posframe-show-params t))))
 
 (use-package pretty-hydra
-  :custom (pretty-hydra-default-title-body-format-spec " %s%s")
   :hook (emacs-lisp-mode . (lambda ()
                              (add-to-list
                               'imenu-generic-expression

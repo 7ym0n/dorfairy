@@ -60,11 +60,15 @@
               (if (display-graphic-p)
                   (menu-bar-mode 1)
                 (menu-bar-mode -1))))
-  (add-hook 'after-load-theme-hook
-            (lambda ()
-              (let ((bg (frame-parameter nil 'background-mode)))
-                (set-frame-parameter nil 'ns-appearance bg)
-                (setcdr (assq 'ns-appearance default-frame-alist) bg)))))
+  (defun refresh-ns-appearance ()
+    "Refresh frame parameter ns-appearance."
+    (let ((bg (frame-parameter nil 'background-mode)))
+      (set-frame-parameter nil 'ns-appearance bg)
+      (setcdr (assq 'ns-appearance default-frame-alist) bg)))
+  (add-hook 'after-load-theme-hook #'refresh-ns-appearance)
+  (with-eval-after-load'auto-dark
+   (add-hook 'auto-dark-dark-mode-hook #'refresh-ns-appearance)
+   (add-hook 'auto-dark-light-mode-hook #'refresh-ns-appearance)))
 
 (use-package time
   :hook (after-init . display-time-mode)
