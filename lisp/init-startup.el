@@ -57,7 +57,6 @@
 
 ;; Editor
 (require 'init-iedit)
-(require 'init-indent-yank)
 (require 'init-wordwrap)
 (require 'init-markdown)
 
