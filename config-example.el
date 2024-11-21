@@ -74,7 +74,7 @@
                                                       (t 130))))
 
     ;; Specify font for all unicode characters
-    (cl-loop for font in '("PowerlineSymbols" "Apple Color Emoji" "Segoe UI Symbol" "Symbola" "Symbol")
+    (cl-loop for font in '("Apple Symbols" "PowerlineSymbols" "Apple Color Emoji" "Segoe UI Symbol" "Symbola" "Symbol")
              when (font-installed-p font)
              return (if (< emacs-major-version 27)
                         (set-fontset-font "fontset-default" 'unicode font nil 'prepend)
@@ -83,13 +83,9 @@
     ;; Emoji
     (cl-loop for font in '("Noto Color Emoji" "Apple Color Emoji" "Segoe UI Emoji")
              when (font-installed-p font)
-             return (cond
-                     ((< emacs-major-version 27)
-                      (set-fontset-font "fontset-default" 'unicode font nil 'prepend))
-                     ((< emacs-major-version 28)
-                      (set-fontset-font t 'symbol (font-spec :family font) nil 'prepend))
-                     (t
-                      (set-fontset-font t 'emoji (font-spec :family font) nil 'prepend))))
+             return (set-fontset-font t
+                                      (if (< emacs-major-version 28)'symbol 'emoji)
+                                      (font-spec :family font) nil 'prepend))
 
     ;; Specify font for Chinese characters
     (cl-loop for font in '("LXGW Neo Xihei" "WenQuanYi Micro Hei Mono" "LXGW WenKai Screen"

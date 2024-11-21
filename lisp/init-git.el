@@ -191,24 +191,12 @@ kill all magit buffers for this repo."
              :nv "gd" #'magit-jump-to-diffstat-or-diff)
             ;; Don't open recursive process buffers
             (:map magit-process-mode-map
-             :nv "`" #'ignore))))
-
-  (use-package magit-gitflow
-    :hook (magit-mode . turn-on-magit-gitflow)
-    :config
-    (define-key magit-mode-map "@" 'magit-gitflow-popup)
-    (transient-replace-suffix 'magit-dispatch 'magit-worktree
-      '("@" "Gitflow" magit-gitflow-popup))
-
-    (transient-append-suffix 'magit-dispatch '(0 -1 -1)
-      '("%" "Worktree" magit-worktree))))
-
+             :nv "`" #'ignore)))))
 
 ;; Display transient in child frame
 (when (childframe-completion-workable-p)
   (use-package transient-posframe
     :diminish
-    :after posframe transient
     :defines posframe-border-width
     :custom-face
     (transient-posframe ((t (:inherit tooltip))))
