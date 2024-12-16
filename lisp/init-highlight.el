@@ -373,6 +373,11 @@ be enabled. If any function returns non-nil, the mode will not be activated."
 ;; Highlight matching parens
 (use-package paren
   :ensure nil
+  :custom-face
+  (show-paren-match ((((class color) (background light))
+                      (:box (:line-width (-1 . -1) :color "gray70")))
+                     (((class color) (background dark))
+                      (:box (:line-width (-1 . -1) :color "gray50")))))
   :hook (after-init . show-paren-mode)
   :init (setq show-paren-when-point-inside-paren t
               show-paren-when-point-in-periphery t)
