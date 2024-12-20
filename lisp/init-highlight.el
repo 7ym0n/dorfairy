@@ -435,5 +435,13 @@ FACE defaults to inheriting from default and highlight."
   :diminish
   :hook ((prog-mode text-mode) . goggles-mode))
 
+;; Mark occurrences of current region (selection)
+(use-package region-occurrences-highlighter
+  :diminish
+  :bind (:map region-occurrences-highlighter-nav-mode-map
+         ("M-n" . region-occurrences-highlighter-next)
+         ("M-p" . region-occurrences-highlighter-prev))
+  :hook (after-init . global-region-occurrences-highlighter-mode))
+
 (provide 'init-highlight)
 ;;; init-highlight.el ends here
