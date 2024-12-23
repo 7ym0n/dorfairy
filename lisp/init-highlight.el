@@ -209,7 +209,7 @@
 ;; Pulse current line
 (use-package pulse
   :ensure nil
-  :hook (((dumb-jump-after-jump imenu-after-jump) . my-recenter-and-pulse)
+  :hook (((imenu-after-jump) . my-recenter-and-pulse)
          ((bookmark-after-jump magit-diff-visit-file next-error) . my-recenter-and-pulse-line))
   :init
   (with-no-warnings

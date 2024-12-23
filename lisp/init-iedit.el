@@ -387,31 +387,6 @@ The return value is the new value of LIST-VAR."
   :bind ("C-." . goto-last-point)
   :hook (after-init . goto-last-point-mode))
 
-;; Jump to definition
-(use-package dumb-jump
-  :pretty-hydra
-  ((:title (pretty-hydra-title "Dump Jump" 'faicon "nf-fa-anchor")
-    :color blue :quit-key ("q" "C-g"))
-   ("Jump"
-    (("j" dumb-jump-go "Go")
-     ("o" dumb-jump-go-other-window "Go other window")
-     ("e" dumb-jump-go-prefer-external "Go external")
-     ("x" dumb-jump-go-prefer-external-other-window "Go external other window"))
-    "Other"
-    (("i" dumb-jump-go-prompt "Prompt")
-     ("l" dumb-jump-quick-look "Quick look")
-     ("b" dumb-jump-back "Back"))))
-  :bind (("M-g o" . dumb-jump-go-other-window)
-         ("M-g j" . dumb-jump-go)
-         ("M-g i" . dumb-jump-go-prompt)
-         ("M-g x" . dumb-jump-go-prefer-external)
-         ("M-g z" . dumb-jump-go-prefer-external-other-window)
-         ("C-M-j" . dumb-jump-hydra/body))
-  :init
-  (add-hook 'xref-backend-functions #'dumb-jump-xref-activate)
-  (setq dumb-jump-selector 'completing-read
-        dumb-jump-prefer-searcher 'rg))
-
 (use-package editorconfig
   :diminish
   :hook (after-init . editorconfig-mode))
