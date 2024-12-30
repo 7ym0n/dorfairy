@@ -25,7 +25,9 @@
 ;;; Code:
 
 
-(use-package json-mode)
+;; JSON
+(unless (fboundp 'js-json-mode)
+  (use-package json-mode))
 
 (provide 'init-json)
 ;;; init-json.el ends here

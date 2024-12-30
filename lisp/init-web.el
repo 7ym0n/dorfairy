@@ -123,10 +123,6 @@
 (use-package haml-mode)
 (use-package php-mode)
 
-(use-package rjsx-mode
-  :mode "\\jsx\\|.[mc]?js\\'"
-  :interpreter "node"
-  :hook (rjsx-mode . rainbow-delimiters-mode))
 
 (use-package emmet-mode
   :hook ((web-mode rjsx-mode) . emmet-mode)

@@ -33,8 +33,7 @@
     (use-package colorful-mode
       :diminish
       ;; :hook (after-init . global-colorful-mode)
-      :init (setq colorful-use-prefix t
-                  colorful-prefix-string "⯄")
+      :init (setq colorful-use-prefix t)
       :config (dolist (mode '(html-mode php-mode help-mode helpful-mode))
                 (add-to-list 'global-colorful-modes mode)))
   (use-package rainbow-mode
@@ -268,7 +267,9 @@ be enabled. If any function returns non-nil, the mode will not be activated."
     (unless (run-hook-with-args-until-success '+indent-guides-inhibit-functions)
       (indent-bars-mode +1)))
   :custom
+  (indent-bars-color '(highlight :face-bg t :blend 0.225))
   (indent-bars-treesit-support t)
+  (indent-bars-no-descend-string t)
   (indent-bars-treesit-ignore-blank-lines-types '("module"))
   :config
   (setq indent-bars-prefer-character
