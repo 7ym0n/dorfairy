@@ -571,6 +571,9 @@
 
    ;; Python
    (use-package lsp-pyright
+     :hook (((python-mode python-ts-mode) . (lambda ()
+                                              (require 'lsp-pyright)
+                                              (add-hook 'after-save-hook #'lsp-pyright-format-buffer t t))))
      :init
      (when (executable-find "basedpyright")
        (setq lsp-pyright-langserver-command "basedpyright"))
