@@ -100,10 +100,6 @@
            (typescript-mode . tide-hl-identifier-mode)
            (before-save . tide-format-before-save))))
 
-;; Run Mocha or Jasmine tests
-(use-package mocha
-  :config (use-package mocha-snippets))
-
 ;; Major mode for CoffeeScript code
 (use-package coffee-mode
   :config (setq coffee-tab-width 2))
