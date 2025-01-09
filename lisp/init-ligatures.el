@@ -156,7 +156,7 @@ isn't disabled in `+ligatures-extras-in-modes'."
     (when-let*
         (((+ligatures--enable-p +ligatures-extras-in-modes))
          (symbols
-          (if-let ((symbols (assq major-mode +ligatures-extra-alist)))
+          (if-let* ((symbols (assq major-mode +ligatures-extra-alist)))
               (cdr symbols)
             (cl-loop for (mode . symbols) in +ligatures-extra-alist
                      if (derived-mode-p mode)
@@ -206,7 +206,7 @@ Note that this will keep all ligatures in `+ligatures-prog-mode-list' active, as
             (push (cons (pop plist) char) results))))
       (dolist (mode (ensure-list modes))
         (setf (alist-get mode +ligatures-extra-alist)
-              (if-let (old-results (alist-get mode +ligatures-extra-alist))
+              (if-let* ((old-results (alist-get mode +ligatures-extra-alist)))
                   (dolist (cell results old-results)
                     (setf (alist-get (car cell) old-results) (cdr cell)))
                 results))))))

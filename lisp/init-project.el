@@ -304,7 +304,7 @@ If prefix ARG is set, include ignored/hidden files."
          (current-prefix-arg (unless (eq arg 'other) arg))
          (default-directory
            (if (eq arg 'other)
-               (if-let (projects (project-known-project-roots))
+               (if-let* ((projects (project-known-project-roots)))
                    (completing-read "Search project: " projects nil t)
                  (user-error "There are no known projects"))
              default-directory)))
@@ -326,7 +326,7 @@ If prefix ARG is set, prompt for a known project to search from."
   (interactive
    (list (or (dotfairy-thing-at-point-or-region) "")
          (if current-prefix-arg
-             (if-let (projects (project-known-project-roots))
+             (if-let* ((projects (project-known-project-roots)))
                  (completing-read "Search project: " projects nil t)
                (user-error "There are no known projects"))
            (project-root (project-current)))))
@@ -349,8 +349,8 @@ ARG is set, prompt for a known project to search from."
 (defun +default/yank-buffer-path (&optional root)
   "Copy the current buffer's path to the kill ring."
   (interactive)
-  (if-let (filename (or (buffer-file-name (buffer-base-buffer))
-                        (bound-and-true-p list-buffers-directory)))
+  (if-let* ((filename (or (buffer-file-name (buffer-base-buffer))
+                          (bound-and-true-p list-buffers-directory))))
       (let ((path (abbreviate-file-name
                    (if root
                        (file-relative-name filename root)

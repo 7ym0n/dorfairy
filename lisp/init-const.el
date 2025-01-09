@@ -72,7 +72,7 @@
 
 (defvar dotfairy-user-dir
   (expand-file-name
-   (if-let (dotfairydir (getenv-internal "DOTFAIRYMDIR"))
+   (if-let* ((dotfairydir (getenv-internal "DOTFAIRYMDIR")))
        (file-name-as-directory dotfairydir)
      (or (let ((xdgdir
                 (file-name-concat
@@ -87,7 +87,7 @@ Defaults to ~/.config/dotfairy, ~/.dotfairy.d or the value of the DOTFAIRYMDIR e
 whichever is found first. Must end in a slash.")
 
 (defconst dotfairy-local-dir
-  (if-let (localdir (getenv "DOTFAIRYLOCALDIR"))
+  (if-let* ((localdir (getenv "DOTFAIRYLOCALDIR")))
       (expand-file-name (file-name-as-directory localdir))
     (concat dotfairy-emacs-dir ".local/"))
   "Root directory for local storage.
@@ -110,7 +110,7 @@ Use this for files that change often, like cache files. Must end with a slash.")
 (defconst dotfairy-package-dir (expand-file-name "elpa/" dotfairy-local-dir))
 
 (defconst dotfairy-private-dir
-  (if-let (dotfairydir (getenv "DOTFAIRYDIR"))
+  (if-let* ((dotfairydir (getenv "DOTFAIRYDIR")))
       (expand-file-name (file-name-as-directory dotfairydir))
     (or (let ((xdgdir
                (expand-file-name "dotfairy/"

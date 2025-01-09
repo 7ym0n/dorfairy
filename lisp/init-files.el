@@ -55,7 +55,7 @@
   (let ((host (or (file-remote-p file 'host) "localhost")))
     (concat "/" (when (file-remote-p file)
                   (concat (file-remote-p file 'method) ":"
-                          (if-let (user (file-remote-p file 'user))
+                          (if-let* ((user (file-remote-p file 'user)))
                               (concat user "@" host)
                             host)
                           "|"))
@@ -86,7 +86,7 @@
   "Save this file as root."
   (interactive)
   (let ((file (dotfairy/sudo-file-path (buffer-file-name (buffer-base-buffer)))))
-    (if-let (buffer (find-file-noselect file))
+    (if-let* ((buffer (find-file-noselect file)))
         (let ((origin (current-buffer)))
           (copy-to-buffer buffer (point-min) (point-max))
           (unwind-protect

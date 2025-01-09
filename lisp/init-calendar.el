@@ -139,9 +139,9 @@
 (defvar +calendar-workspace-name "*calendar*"
   "Name of the workspace created by `=calendar', dedicated to calfw.")
 (defun +calendar--init ()
-  (if-let (win (cl-find-if (lambda (b) (string-match-p "^\\*cfw:" (buffer-name b)))
-                           (dotfairy-visible-windows)
-                           :key #'window-buffer))
+  (if-let* ((win (cl-find-if (lambda (b) (string-match-p "^\\*cfw:" (buffer-name b)))
+                             (dotfairy-visible-windows)
+                             :key #'window-buffer)))
       (select-window win)
     (call-interactively +calendar-open-function)))
 
