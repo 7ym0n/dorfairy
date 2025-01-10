@@ -109,7 +109,8 @@
         doom-modeline-buffer-file-name-style 'relative-from-project
         ;; Only show file encoding if it's non-UTF-8 and different line endings
         ;; than the current OSes preference
-        doom-modeline-buffer-encoding 'nondefault)
+        doom-modeline-buffer-encoding 'nondefault
+        doom-modeline-default-eol-type (if (featurep :system 'windows) 1 0))
   :config
 ;;;###autoload
   (defun +modeline-update-env-in-all-windows-h (&rest _)
