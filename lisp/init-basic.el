@@ -257,8 +257,21 @@
                  2)
               (/ (+ (plist-get info :parent-frame-height)
                     (* 2 (plist-get info :font-height)))
-                 2))))))
+                 2)))))
 
+  (use-package transient-posframe
+    :diminish
+    :defines posframe-border-width
+    :custom-face
+    (transient-posframe ((t (:inherit tooltip))))
+    (transient-posframe-border ((t (:inherit posframe-border :background unspecified))))
+    :hook (after-init . transient-posframe-mode)
+    :init
+    (setq transient-mode-line-format nil
+          transient-posframe-border-width posframe-border-width
+          transient-posframe-poshandler 'posframe-poshandler-frame-center
+          transient-posframe-parameters '((left-fringe . 8)
+                                          (right-fringe . 8)))))
 
 ;; need install nerd-icons fonts
 (use-package nerd-icons
